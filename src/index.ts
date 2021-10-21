@@ -4,7 +4,7 @@ import cors from "cors";
 
 
 const prisma = new PrismaClient();
-const port: number = 5000;
+const port: number = 80;
 const app = express();
 
 app.use(express.urlencoded({extended: true}));
