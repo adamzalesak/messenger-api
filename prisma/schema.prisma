@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["orderByRelation"]
+}
+
+model User {
+  id                    Int       @id @default(autoincrement())
+  name                  String 
+  email                 String    @unique @db.VarChar(255)
+  password              String 
+
+  contacts              Contact[]   @relation(name: "owner")
+  inContacts            Contact[]   @relation(name: "subject")
+
+  conversations         UserConversation[]
+
+  sentMessages          Message[]
+}
+
+model Contact {
+  id          Int       @id @default(autoincrement())
+  owner       User      @relation(name: "owner", fields: [ownerId], references: [id])
+  ownerId     Int       
+  subject     User      @relation(name: "subject", fields: [subjectId], references: [id])
+  subjectId   Int
+}
+
+model UserConversation {
+  id                    Int             @id @default(autoincrement())
+  isPinned              Boolean
+
+  user                  User            @relation(fields: [userId], references: [id])
+  conversation          Conversation    @relation(fields: [conversationId], references: [id])
+  userId                Int
+  conversationId        Int
+}
+
+model Conversation {
+  id                    Int       @id @default(autoincrement())
+  updatedAt             DateTime  @default(now())
+
+  participants          UserConversation[]
+
+  messages              Message[]
+}
+
+model Message {
+  uuid          String      @id @default(uuid())
+  content       String
+  sendAt        DateTime    @default(now())
+  editedAt      DateTime?
+  deletedAt     DateTime?
+
+  conversation          Conversation    @relation(fields: [conversationId], references: [id])
+  conversationId        Int
+  author                User            @relation(fields: [authorId], references: [id])
+  authorId              Int
+
+  files                 File[]
+  images                Image[]
+}
+
+model File {
+  id          Int       @id @default(autoincrement())
+  filePath    String
+
+  message     Message   @relation(fields: [messageUuid], references: [uuid])
+  messageUuid String
+}
+
+model Image {
+  id          Int       @id @default(autoincrement())
+  filePath    String
+
+  message     Message   @relation(fields: [messageUuid], references: [uuid])
+  messageUuid String
+}
